@@ -1,0 +1,49 @@
+pipeline {
+    agent any
+    
+    tools {
+        maven 'localMaven'
+    }
+    
+    stages {
+        stage('Clone') {
+            steps {
+                git credentialsId: 'secretKey', 
+                url: 'https://github.com/Alex221100/maven-project.git'
+            }
+        }
+        
+        stage('Compile') {
+            steps {
+                //sur linux
+                // sh "mvn compile" 
+                bat "mvn compile"
+            }
+        }
+        
+        stage('Test') {
+            steps {
+                //sur linux
+                // sh "mvn test" 
+                bat "mvn test"
+            }
+        }
+        
+        stage('Build') {
+            steps {
+                //sur linux
+                // sh "mvn package" 
+                bat 'mvn -B -DskipTests clean package'
+            }
+        }
+        
+        stage('Build and send Results Sonar') {
+            steps {
+                withSonarQubeEnv(installationName: 'localSonarQube', credentialsId: 'tokenSonar')
+                {
+                    bat 'mvn -B -DskipTests clean package sonar:sonar'
+                }
+            }
+        }
+    }
+    
